@@ -3,7 +3,6 @@
 #include "ibm.h"
 #include "device.h"
 #include "mem.h"
-#include "thread.h"
 #include "video.h"
 #include "vid_svga.h"
 #include "vid_voodoo.h"
@@ -52,14 +51,11 @@ void voodoo_reg_writel(uint32_t addr, uint32_t val, void *p)
                 {
 //                        pclog("swapbufferCMD %08x %08x\n", val, voodoo->leftOverlayBuf);
 
-                        voodoo_wait_for_render_thread_idle(voodoo);
                         if (!(val & 1))
                         {
                                 banshee_set_overlay_addr(voodoo->p, voodoo->leftOverlayBuf);
-                                thread_lock_mutex(voodoo->swap_mutex);
                                 if (voodoo->swap_count > 0)
                                         voodoo->swap_count--;
-                                thread_unlock_mutex(voodoo->swap_mutex);
                                 voodoo->frame_count++;
                         }
                         else if (TRIPLE_BUFFER)
@@ -99,15 +95,12 @@ void voodoo_reg_writel(uint32_t addr, uint32_t val, void *p)
 
 //                pclog("Swap buffer %08x %d %p %i\n", val, voodoo->swap_count, &voodoo->swap_count, (voodoo == voodoo->set->voodoos[1]) ? 1 : 0);
 //                voodoo->front_offset = params->front_offset;
-                voodoo_wait_for_render_thread_idle(voodoo);
                 if (!(val & 1))
                 {
                         memset(voodoo->dirty_line, 1, sizeof(voodoo->dirty_line));
                         voodoo->front_offset = voodoo->params.front_offset;
-                        thread_lock_mutex(voodoo->swap_mutex);
                         if (voodoo->swap_count > 0)
                                 voodoo->swap_count--;
-                        thread_unlock_mutex(voodoo->swap_mutex);
                 }
                 else if (TRIPLE_BUFFER)
                 {
@@ -495,7 +488,6 @@ void voodoo_reg_writel(uint32_t addr, uint32_t val, void *p)
                 voodoo->fbiPixelsOut = 0;
                 break;
                 case SST_fastfillCMD:
-                voodoo_wait_for_render_thread_idle(voodoo);
                 voodoo_fastfill(voodoo, &voodoo->params);
                 voodoo->cmd_read++;
                 break;

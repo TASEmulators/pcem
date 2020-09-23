@@ -450,7 +450,6 @@ void lcdm_poll(pc200_t *pc200)
                         if (mda->displine < mda->firstline)
                         {
                                 mda->firstline = mda->displine;                                
-                                video_wait_for_buffer();
                         }
                         mda->lastline = mda->displine;
                         for (x = 0; x < mda->crtc[1]; x++)
@@ -598,7 +597,6 @@ void lcdc_poll(pc200_t *pc200)
                         if (cga->displine < cga->firstline)
                         {
                                 cga->firstline = cga->displine;
-                                video_wait_for_buffer();
 //                                printf("Firstline %i\n",firstline);
                         }
                         cga->lastline = cga->displine;

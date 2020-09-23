@@ -130,7 +130,6 @@ void colorplus_poll(void *p)
                         if (colorplus->cga.displine < colorplus->cga.firstline)
                         {
                                 colorplus->cga.firstline = colorplus->cga.displine;
-                                video_wait_for_buffer();
 //                                printf("Firstline %i\n",firstline);
                         }
                         colorplus->cga.lastline = colorplus->cga.displine;

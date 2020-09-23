@@ -3,7 +3,6 @@
 #include "ibm.h"
 #include "device.h"
 #include "mem.h"
-#include "thread.h"
 #include "video.h"
 #include "vid_svga.h"
 #include "vid_voodoo.h"
@@ -1551,90 +1550,17 @@ void voodoo_triangle(voodoo_t *voodoo, voodoo_params_t *params, int odd_even)
         voodoo_half_triangle(voodoo, params, &state, vertexAy_adjusted, vertexCy_adjusted, odd_even);
 }
 
-
-static void render_thread(void *param, int odd_even)
-{
-        voodoo_t *voodoo = (voodoo_t *)param;
-
-        while (1)
-        {
-                thread_set_event(voodoo->render_not_full_event[odd_even]);
-                thread_wait_event(voodoo->wake_render_thread[odd_even], -1);
-                thread_reset_event(voodoo->wake_render_thread[odd_even]);
-                voodoo->render_voodoo_busy[odd_even] = 1;
-
-                while (!PARAM_EMPTY(odd_even))
-                {
-                        uint64_t start_time = timer_read();
-                        uint64_t end_time;
-                        voodoo_params_t *params = &voodoo->params_buffer[voodoo->params_read_idx[odd_even] & PARAM_MASK];
-
-                        voodoo_triangle(voodoo, params, odd_even);
-
-                        voodoo->params_read_idx[odd_even]++;
-
-                        if (PARAM_ENTRIES(odd_even) > (PARAM_SIZE - 10))
-                                thread_set_event(voodoo->render_not_full_event[odd_even]);
-
-                        end_time = timer_read();
-                        voodoo->render_time[odd_even] += end_time - start_time;
-                }
-
-                voodoo->render_voodoo_busy[odd_even] = 0;
-        }
-}
-
-void voodoo_render_thread_1(void *param)
-{
-        render_thread(param, 0);
-}
-void voodoo_render_thread_2(void *param)
-{
-        render_thread(param, 1);
-}
-void voodoo_render_thread_3(void *param)
-{
-        render_thread(param, 2);
-}
-void voodoo_render_thread_4(void *param)
-{
-        render_thread(param, 3);
-}
-
 void voodoo_queue_triangle(voodoo_t *voodoo, voodoo_params_t *params)
 {
-        voodoo_params_t *params_new = &voodoo->params_buffer[voodoo->params_write_idx & PARAM_MASK];
-
-        while (PARAM_FULL(0) || (voodoo->render_threads >= 2 && PARAM_FULL(1)) ||
-                (voodoo->render_threads == 4 && (PARAM_FULL(2) || PARAM_FULL(3))))
-        {
-                thread_reset_event(voodoo->render_not_full_event[0]);
-                if (voodoo->render_threads >= 2)
-                        thread_reset_event(voodoo->render_not_full_event[1]);
-                if (voodoo->render_threads == 4)
-                {
-                        thread_reset_event(voodoo->render_not_full_event[2]);
-                        thread_reset_event(voodoo->render_not_full_event[3]);
-                }
-                if (PARAM_FULL(0))
-                        thread_wait_event(voodoo->render_not_full_event[0], -1); /*Wait for room in ringbuffer*/
-                if (voodoo->render_threads >= 2 && PARAM_FULL(1))
-                        thread_wait_event(voodoo->render_not_full_event[1], -1); /*Wait for room in ringbuffer*/
-                if (voodoo->render_threads == 4 && PARAM_FULL(2))
-                        thread_wait_event(voodoo->render_not_full_event[2], -1); /*Wait for room in ringbuffer*/
-                if (voodoo->render_threads == 4 && PARAM_FULL(3))
-                        thread_wait_event(voodoo->render_not_full_event[3], -1); /*Wait for room in ringbuffer*/
-        }
-
         voodoo_use_texture(voodoo, params, 0);
         if (voodoo->dual_tmus)
                 voodoo_use_texture(voodoo, params, 1);
 
-        memcpy(params_new, params, sizeof(voodoo_params_t));
-
-        voodoo->params_write_idx++;
-
-        if (PARAM_ENTRIES(0) < 4 || (voodoo->render_threads >= 2 && PARAM_ENTRIES(1) < 4) ||
-                        (voodoo->render_threads == 4 && (PARAM_ENTRIES(2) < 4 || PARAM_ENTRIES(3) < 4)))
-                voodoo_wake_render_thread(voodoo);
+        for (int th = 0; th < voodoo->render_threads; th++)
+        {
+                uint64_t start_time = timer_read();
+                voodoo_triangle(voodoo, params, th);
+                uint64_t end_time = timer_read();
+                voodoo->render_time[th] += end_time - start_time;            
+        }
 }

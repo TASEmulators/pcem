@@ -124,8 +124,6 @@ int sound_pos_global = 0;
 int soundon = 1;
 
 static int16_t cd_buffer[CD_BUFLEN * 2];
-static thread_t *sound_cd_thread_h;
-static event_t *sound_cd_event;
 static unsigned int cd_vol_l, cd_vol_r;
 
 int sound_buf_len = 48000 / 10;
@@ -147,14 +145,32 @@ void sound_set_cd_volume(unsigned int vol_l, unsigned int vol_r)
         cd_vol_r = vol_r;
 }
 
-static void sound_cd_thread(void *param)
+static int32_t *outbuffer;
+
+void sound_init()
 {
-        while (1)
+        initalmain(0,NULL);
+        inital();
+
+        outbuffer = malloc(MAXSOUNDBUFLEN * 2 * sizeof(int32_t));
+}
+
+void sound_add_handler(void (*get_buffer)(int32_t *buffer, int len, void *p), void *p)
+{
+        sound_handlers[sound_handlers_num].get_buffer = get_buffer;
+        sound_handlers[sound_handlers_num].priv = p;
+        sound_handlers_num++;
+}
+
+static int cd_pos = 0;
+void sound_poll(void *priv)
+{
+        timer_advance_u64(&sound_poll_timer, sound_poll_latch);
+        cd_pos++;
+        if (cd_pos == (CD_BUFLEN * 48000) / CD_FREQ)
         {
+                cd_pos = 0;
                 int c;
-                
-                thread_wait_event(sound_cd_event, -1);
-                thread_reset_event(sound_cd_event);
                 memset(cd_buffer, 0, CD_BUFLEN*2 * 2);
                 ioctl_audio_callback(cd_buffer, CD_BUFLEN*2);
                 image_audio_callback(cd_buffer, CD_BUFLEN*2);
@@ -204,39 +220,6 @@ static void sound_cd_thread(void *param)
 
                         givealbuffer_cd(cd_buffer);
                 }
-        }
-}
-
-static int32_t *outbuffer;
-
-void sound_init()
-{
-        initalmain(0,NULL);
-        inital();
-
-        outbuffer = malloc(MAXSOUNDBUFLEN * 2 * sizeof(int32_t));
-        
-        sound_cd_event = thread_create_event();
-        sound_cd_thread_h = thread_create(sound_cd_thread, NULL);
-}
-
-void sound_add_handler(void (*get_buffer)(int32_t *buffer, int len, void *p), void *p)
-{
-        sound_handlers[sound_handlers_num].get_buffer = get_buffer;
-        sound_handlers[sound_handlers_num].priv = p;
-        sound_handlers_num++;
-}
-
-static int cd_pos = 0;
-void sound_poll(void *priv)
-{
-	timer_advance_u64(&sound_poll_timer, sound_poll_latch);
-
-        cd_pos++;
-        if (cd_pos == (CD_BUFLEN * 48000) / CD_FREQ)
-        {
-                cd_pos = 0;
-                thread_set_event(sound_cd_event);
         }
         
         sound_pos_global++;

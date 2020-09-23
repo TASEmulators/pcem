@@ -14,7 +14,6 @@
 #include "ibm.h"
 #include "device.h"
 #include "mem.h"
-#include "thread.h"
 #include "video.h"
 #include "vid_svga.h"
 #include "vid_voodoo.h"
@@ -1290,7 +1289,6 @@ void voodoo_2d_reg_writel(voodoo_t *voodoo, uint32_t addr, uint32_t val)
 //                pclog("dstXY=%08x\n", val);
                 break;
                 case 0x70:
-                voodoo_wait_for_render_thread_idle(voodoo);
                 voodoo->banshee_blt.command = val;
                 voodoo->banshee_blt.rops[0] = val >> 24;
 //                pclog("command=%x %08x\n", voodoo->banshee_blt.command & COMMAND_CMD_MASK, val);

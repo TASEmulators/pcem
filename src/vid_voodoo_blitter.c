@@ -3,7 +3,6 @@
 #include "ibm.h"
 #include "device.h"
 #include "mem.h"
-#include "thread.h"
 #include "video.h"
 #include "vid_svga.h"
 #include "vid_voodoo.h"
@@ -92,8 +91,6 @@ void voodoo_v2_blit_start(voodoo_t *voodoo)
 
 /*        pclog("blit_start: command=%08x srcX=%i srcY=%i dstX=%i dstY=%i sizeX=%i sizeY=%i color=%04x,%04x\n",
                 voodoo->bltCommand, voodoo->bltSrcX, voodoo->bltSrcY, voodoo->bltDstX, voodoo->bltDstY, voodoo->bltSizeX, voodoo->bltSizeY, voodoo->bltColorFg, voodoo->bltColorBg);*/
-
-        voodoo_wait_for_render_thread_idle(voodoo);
 
         switch (voodoo->bltCommand & BLIT_COMMAND_MASK)
         {

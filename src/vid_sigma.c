@@ -656,7 +656,6 @@ void sigma_poll(void *p)
                         if (sigma->displine < sigma->firstline)
                         {
                                 sigma->firstline = sigma->displine;
-                                video_wait_for_buffer();
 //                                printf("Firstline %i\n",firstline);
                         }
                         sigma->lastline = sigma->displine;

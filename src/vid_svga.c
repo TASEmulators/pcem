@@ -500,7 +500,6 @@ void svga_poll(void *p)
                         if (svga->firstline == 2000)
                         {
                                 svga->firstline = svga->displine;
-                                video_wait_for_buffer();
                         }
                         
                         if (svga->hwcursor_on || svga->overlay_on)

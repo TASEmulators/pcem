@@ -1,3 +1,5 @@
+#include <SDL2/SDL.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,3 +19,7 @@ extern char openfilestring[260];
 extern int pause;
 
 extern int take_screenshot;
+
+extern SDL_mutex* syncMutex;
+extern SDL_cond* syncCond;
+extern int syncRender;

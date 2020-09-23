@@ -5,6 +5,7 @@
 #include "ibm.h"
 #include "wx-display.h"
 #include "plat-keyboard.h"
+#include "wx-sdl2.h"
 
 #ifdef __WINDOWS__
 #define BITMAP WINDOWS_BITMAP
@@ -85,7 +86,7 @@ void releasemouse()
 
 int display_init()
 {
-        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0)
+        if (SDL_Init(SDL_INIT_VIDEO) < 0)
         {
                 printf("SDL could not initialize! Error: %s\n", SDL_GetError());
                 return 0;
@@ -461,7 +462,6 @@ int render()
                 sdl_renderer_init(window);
 
                 device_force_redraw();
-                video_wait_for_blit();
         }
         while(SDL_PollEvent(&event))
         {
@@ -598,7 +598,6 @@ int render()
         if (window_dofullscreen)
         {
                 window_dofullscreen = 0;
-                video_wait_for_blit();
                 SDL_RaiseWindow(window);
 #if SDL_VERSION_ATLEAST(2, 0, 4)
                 SDL_GetGlobalMouseState(&remembered_mouse_x, &remembered_mouse_y);
@@ -692,7 +691,19 @@ int renderer_thread(void* params)
                         if (!render())
                                 internal_rendering = 0;
 
-                        SDL_Delay(1);
+                        SDL_LockMutex(syncMutex);
+                        syncRender = 0;
+                        SDL_CondSignal(syncCond);
+                        SDL_UnlockMutex(syncMutex);
+
+                        if (!rendering || !internal_rendering)
+                            break;
+
+                        SDL_LockMutex(syncMutex);
+                        while (!syncRender) {
+                            SDL_CondWait(syncCond, syncMutex);
+                        }
+                        SDL_UnlockMutex(syncMutex);
                 }
                 window_close();
         }
@@ -762,7 +773,12 @@ void renderer_stop(int timeout)
         if (rendering)
         {
                 SDL_LockMutex(rendererMutex);
+                SDL_LockMutex(syncMutex);
                 rendering = 0;
+                syncRender = 1;
+                SDL_CondSignal(syncCond);
+                SDL_UnlockMutex(syncMutex);
+
                 if (timeout)
                         SDL_CondWaitTimeout(rendererCond, rendererMutex, timeout);
                 else

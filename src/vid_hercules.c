@@ -139,7 +139,6 @@ void hercules_poll(void *p)
                         if (hercules->displine < hercules->firstline)
                         {
                                 hercules->firstline = hercules->displine;
-                                video_wait_for_buffer();
                         }
                         hercules->lastline = hercules->displine;
                         if ((hercules->ctrl & 2) && (hercules->ctrl2 & 1))

@@ -80,9 +80,6 @@ extern int video_res_x, video_res_y, video_bpp;
 
 extern int vid_resize;
 
-void video_wait_for_blit();
-void video_wait_for_buffer();
-
 typedef enum
 {
 	FONT_MDA,	/* MDA 8x14 */

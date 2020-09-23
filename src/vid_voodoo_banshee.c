@@ -5,7 +5,6 @@
 #include "mem.h"
 #include "pci.h"
 #include "rom.h"
-#include "thread.h"
 #include "video.h"
 #include "vid_ddc.h"
 #include "vid_svga.h"
@@ -779,7 +778,7 @@ static uint32_t banshee_status(banshee_t *banshee)
                 ret |= (1 << 11);
 
         if (!voodoo->voodoo_busy)
-                voodoo_wake_fifo_thread(voodoo);
+                voodoo_execute_command(voodoo);
 
 //        pclog("banshee_status: busy %i  %i (%i %i)  %i   %i %i  %04x(%08x):%08x %08x\n", busy, written, voodoo->cmd_written, voodoo->cmd_written_fifo, voodoo->cmd_read, voodoo->cmdfifo_depth_rd, voodoo->cmdfifo_depth_wr, CS,cs,cpu_state.pc, ret);
 
@@ -1253,38 +1252,36 @@ static void banshee_reg_writel(uint32_t addr, uint32_t val, void *p)
                         voodoo->cmd_written++;
                         voodoo_queue_command(voodoo, (addr & 0x3fc) | FIFO_WRITEL_REG, val);
                         if (!voodoo->voodoo_busy)
-                                voodoo_wake_fifo_threads(voodoo->set, voodoo);
+                                voodoo_execute_commands(voodoo->set, voodoo);
 //                        pclog("SST_swapbufferCMD write: %i %i\n", voodoo->cmd_written, voodoo->cmd_written_fifo);
                         break;
                         case SST_triangleCMD:
                         voodoo->cmd_written++;
                         voodoo_queue_command(voodoo, (addr & 0x3fc) | FIFO_WRITEL_REG, val);
                         if (!voodoo->voodoo_busy)
-                                voodoo_wake_fifo_threads(voodoo->set, voodoo);
+                                voodoo_execute_commands(voodoo->set, voodoo);
                         break;
                         case SST_ftriangleCMD:
                         voodoo->cmd_written++;
                         voodoo_queue_command(voodoo, (addr & 0x3fc) | FIFO_WRITEL_REG, val);
                         if (!voodoo->voodoo_busy)
-                                voodoo_wake_fifo_threads(voodoo->set, voodoo);
+                                voodoo_execute_commands(voodoo->set, voodoo);
                         break;
                         case SST_fastfillCMD:
                         voodoo->cmd_written++;
                         voodoo_queue_command(voodoo, (addr & 0x3fc) | FIFO_WRITEL_REG, val);
                         if (!voodoo->voodoo_busy)
-                                voodoo_wake_fifo_threads(voodoo->set, voodoo);
+                                voodoo_execute_commands(voodoo->set, voodoo);
                         break;
                         case SST_nopCMD:
                         voodoo->cmd_written++;
                         voodoo_queue_command(voodoo, (addr & 0x3fc) | FIFO_WRITEL_REG, val);
                         if (!voodoo->voodoo_busy)
-                                voodoo_wake_fifo_threads(voodoo->set, voodoo);
+                                voodoo_execute_commands(voodoo->set, voodoo);
                         break;
                         
                         case SST_swapPending:
-                        thread_lock_mutex(voodoo->swap_mutex);
                         voodoo->swap_count++;
-                        thread_unlock_mutex(voodoo->swap_mutex);
 //                        voodoo->cmd_written++;
                         break;
                         
@@ -1545,7 +1542,7 @@ static void banshee_write_linear_l(uint32_t addr, uint32_t val, void *p)
                         voodoo->cmdfifo_amin = voodoo->cmdfifo_base;
                         voodoo->cmdfifo_amax = voodoo->cmdfifo_base;
                         voodoo->cmdfifo_depth_wr++;
-                        voodoo_wake_fifo_thread(voodoo);
+                        voodoo_execute_command(voodoo);
                 }
                 else if (voodoo->cmdfifo_holecount)
                 {
@@ -1558,7 +1555,7 @@ static void banshee_write_linear_l(uint32_t addr, uint32_t val, void *p)
                                 /*Filled in holes, resume normal operation*/
                                 voodoo->cmdfifo_depth_wr += ((voodoo->cmdfifo_amax - voodoo->cmdfifo_amin) >> 2);
                                 voodoo->cmdfifo_amin = voodoo->cmdfifo_amax;
-                                voodoo_wake_fifo_thread(voodoo);
+                                voodoo_execute_command(voodoo);
 //                                pclog("hole filled! amin=%08x amax=%08x added %i words\n", voodoo->cmdfifo_amin, voodoo->cmdfifo_amax, words_to_add);
                         }
                 }
@@ -1568,7 +1565,7 @@ static void banshee_write_linear_l(uint32_t addr, uint32_t val, void *p)
                         voodoo->cmdfifo_amin = addr;
                         voodoo->cmdfifo_amax = addr;
                         voodoo->cmdfifo_depth_wr++;
-                        voodoo_wake_fifo_thread(voodoo);
+                        voodoo_execute_command(voodoo);
                 }
                 else
                 {
@@ -2268,22 +2265,17 @@ static void banshee_vsync_callback(svga_t *svga)
         voodoo_t *voodoo = banshee->voodoo;
 
         voodoo->retrace_count++;
-        thread_lock_mutex(voodoo->swap_mutex);
         if (voodoo->swap_pending && (voodoo->retrace_count > voodoo->swap_interval))
         {
                 if (voodoo->swap_count > 0)
                         voodoo->swap_count--;
                 voodoo->swap_pending = 0;
-                thread_unlock_mutex(voodoo->swap_mutex);
 
                 memset(voodoo->dirty_line, 1, sizeof(voodoo->dirty_line));
                 voodoo->retrace_count = 0;
                 banshee_set_overlay_addr(banshee, voodoo->swap_offset);
-                thread_set_event(voodoo->wake_fifo_thread);
                 voodoo->frame_count++;
         }
-        else
-                thread_unlock_mutex(voodoo->swap_mutex);
 
         voodoo->overlay.src_y = 0;
         banshee->desktop_addr = banshee->vidDesktopStartAddr;

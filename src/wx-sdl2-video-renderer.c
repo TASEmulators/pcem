@@ -156,7 +156,7 @@ sdl_renderer_t* sdl2_renderer_create()
         renderer->close = sdl_video_renderer_close;
         renderer->update = sdl_video_renderer_update;
         renderer->present = sdl_video_renderer_present;
-        renderer->always_update = 0;
+        renderer->always_update = 1;
         return renderer;
 }
 

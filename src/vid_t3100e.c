@@ -489,10 +489,6 @@ void t3100e_poll(void *p)
                 t3100e->linepos = 1;
                 if (t3100e->dispon)
                 {
-                        if (t3100e->displine == 0)
-                        {
-                                video_wait_for_buffer();
-                        }
 
 			/* Graphics */
 			if (t3100e->cga.cgamode & 0x02)	

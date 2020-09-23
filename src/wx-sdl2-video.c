@@ -10,8 +10,6 @@
 #include "wx-sdl2-video-gl3.h"
 #include "wx-sdl2-video-renderer.h"
 
-void video_blit_complete();
-
 BITMAP *screen;
 static BITMAP *screen_copy = NULL;
 static SDL_Rect screen_rect;
@@ -205,7 +203,6 @@ static void sdl_blit_memtoscreen(int x, int y, int y1, int y2, int w, int h)
 {
         if (y1 == y2)
         {
-                video_blit_complete();
                 return; /*Nothing to do*/
         }
 
@@ -222,7 +219,6 @@ static void sdl_blit_memtoscreen(int x, int y, int y1, int y2, int w, int h)
         blit_rect.w = w;
         blit_rect.h = h;
         SDL_UnlockMutex(blitMutex);
-        video_blit_complete();
 }
 
 int sdl_is_fullscreen(SDL_Window* window) {

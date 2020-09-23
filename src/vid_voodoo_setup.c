@@ -1,7 +1,6 @@
 #include "ibm.h"
 #include "device.h"
 #include "mem.h"
-#include "thread.h"
 #include "video.h"
 #include "vid_svga.h"
 #include "vid_voodoo.h"

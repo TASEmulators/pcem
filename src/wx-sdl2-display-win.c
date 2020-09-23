@@ -730,7 +730,6 @@ int render()
                 sdl_renderer_init(window);
 
                 device_force_redraw();
-                video_wait_for_blit();
         }
         while(SDL_PollEvent(&event))
         {
@@ -838,7 +837,6 @@ int render()
         {
                 window_dofullscreen = 0;
                 SetMenu(hwnd, 0);
-                video_wait_for_blit();
                 SDL_RaiseWindow(window);
                 SDL_GetGlobalMouseState(&remembered_mouse_x, &remembered_mouse_y);
                 SDL_GetWindowPosition(window, &remembered_rect.x, &remembered_rect.y);

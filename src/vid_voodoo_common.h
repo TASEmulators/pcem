@@ -232,7 +232,6 @@ typedef struct voodoo_t
 
         uint32_t tmuConfig;
 
-        mutex_t *swap_mutex;
         int swap_count;
 
         int disp_buffer, draw_buffer;
@@ -258,14 +257,6 @@ typedef struct voodoo_t
 
         rgba_u ncc_lookup[2][2][256];
         int ncc_dirty[2];
-
-        thread_t *fifo_thread;
-        thread_t *render_thread[4];
-        event_t *wake_fifo_thread;
-        event_t *wake_main_thread;
-        event_t *fifo_not_full_event;
-        event_t *render_not_full_event[4];
-        event_t *wake_render_thread[4];
 
         int voodoo_busy;
         int render_voodoo_busy[4];
