@@ -72,7 +72,9 @@ SDL_cond* mainCond;
 
 SDL_Thread* mainthreadh = NULL;
 
-SDL_TimerID onesectimer;
+SDL_mutex* syncMutex;
+SDL_cond* syncCond;
+int syncRender = 1;
 
 int running = 0;
 
@@ -190,6 +192,12 @@ int mainthread(void* param)
         running = 1;
         while (running)
         {
+                SDL_LockMutex(syncMutex);
+                while (syncRender) {
+                    SDL_CondWait(syncCond, syncMutex);
+                }
+                SDL_UnlockMutex(syncMutex);
+
                 new_time = SDL_GetTicks();
                 drawits += new_time - old_time;
                 old_time = new_time;
@@ -199,8 +207,6 @@ int mainthread(void* param)
                         uint64_t start_time = timer_read();
                         uint64_t end_time;
                         drawits -= 10;
-                        if (drawits > 50)
-                                drawits = 0;
                         runpc();
                         frames++;
                         if (frames >= 200 && nvr_dosave)
@@ -214,6 +220,11 @@ int mainthread(void* param)
                 }
                 else
                         SDL_Delay(1);
+
+                SDL_LockMutex(syncMutex);
+                syncRender = 1;
+                SDL_CondSignal(syncCond);
+                SDL_UnlockMutex(syncMutex);
         }
 
         SDL_LockMutex(mainMutex);
@@ -278,12 +289,6 @@ void screenshot_taken(unsigned char* rgb, int width, int height)
 uint64_t timer_read()
 {
         return SDL_GetPerformanceCounter();
-}
-
-Uint32 timer_onesec(Uint32 interval, void* param)
-{
-        onesec();
-        return interval;
 }
 
 void sdl_loadconfig()
@@ -626,6 +631,9 @@ int start_emulation(void* params)
         mainMutex = SDL_CreateMutex();
         mainCond = SDL_CreateCond();
 
+        syncMutex = SDL_CreateMutex();
+        syncCond = SDL_CreateCond();
+
         if (!loadbios())
         {
                 if (romset != -1)
@@ -667,8 +675,6 @@ int start_emulation(void* params)
         display_start(params);
         mainthreadh = SDL_CreateThread(mainthread, "Main Thread", NULL);
 
-        onesectimer = SDL_AddTimer(1000, timer_onesec, NULL);
-
         updatewindowsize(640, 480);
 
         timer_freq = SDL_GetPerformanceFrequency();
@@ -699,14 +705,21 @@ int stop_emulation()
         SDL_DestroyCond(mainCond);
         SDL_DestroyMutex(mainMutex);
 
+        SDL_LockMutex(syncMutex);
+        syncRender = 0;
+        SDL_CondSignal(syncCond);
+        SDL_UnlockMutex(syncMutex);
+
         startblit();
         display_stop();
+
+        SDL_DestroyCond(syncCond);
+        SDL_DestroyMutex(syncMutex);
 
 #if SDL_VERSION_ATLEAST(2, 0, 2)
         SDL_DetachThread(mainthreadh);
 #endif
         mainthreadh = NULL;
-        SDL_RemoveTimer(onesectimer);
         savenvr();
         saveconfig(NULL);
 

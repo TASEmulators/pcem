@@ -197,16 +197,6 @@ int clocks[3][12][4]=
 int updatestatus;
 int win_title_update=0;
 
-
-void onesec()
-{
-        fps=framecount;
-        framecount=0;
-        video_refresh_rate = video_frames;
-        video_frames = 0;
-        win_title_update=1;
-}
-
 void pc_reset()
 {
         resetx86();

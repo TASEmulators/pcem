@@ -764,10 +764,6 @@ void wy700_poll(void *p)
                 wy700->linepos = 1;
                 if (wy700->dispon)
                 {
-                        if (wy700->displine == 0)
-                        {
-                                video_wait_for_buffer();
-                        }
 	
 			if (wy700->wy700_mode & 0x80) 
 				mode = wy700->wy700_mode & 0xF0;

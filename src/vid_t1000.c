@@ -454,10 +454,6 @@ static void t1000_poll(void *p)
                 t1000->linepos = 1;
                 if (t1000->dispon)
                 {
-                        if (t1000->displine == 0)
-                        {
-                                video_wait_for_buffer();
-                        }
 
 			/* Graphics */
 			if (t1000->cga.cgamode & 0x02)	

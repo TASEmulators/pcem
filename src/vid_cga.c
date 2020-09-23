@@ -153,7 +153,6 @@ void cga_poll(void *p)
                         if (cga->displine < cga->firstline)
                         {
                                 cga->firstline = cga->displine;
-                                video_wait_for_buffer();
 //                                printf("Firstline %i\n",firstline);
                         }
                         cga->lastline = cga->displine;

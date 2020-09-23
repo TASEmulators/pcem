@@ -475,10 +475,6 @@ void genius_poll(void *p)
 			{
 				background = genius_pal[0];
 			}
-                        if (genius->displine == 0)
-                        {
-                                video_wait_for_buffer();
-                        }
 			/* Start off with a blank line */
 			for (x = 0; x < GENIUS_XSIZE; x++)
 			{

@@ -100,7 +100,6 @@ void mda_poll(void *p)
                         if (mda->displine < mda->firstline)
                         {
                                 mda->firstline = mda->displine;                                
-                                video_wait_for_buffer();
                         }
                         mda->lastline = mda->displine;
                         for (x = 0; x < mda->crtc[1]; x++)

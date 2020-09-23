@@ -2143,12 +2143,7 @@ void pgc_cga_poll(pgc_core_t *pgc)
                 pgc->mapram[0x3DA] |= 1;
                 pgc->linepos = 1;
                 if (pgc->cgadispon)
-                {
-                        if (pgc->displine == 0)
-                        {
-                                video_wait_for_buffer();
-                        }
-                       
+                {                       
                         if ((pgc->mapram[0x3D8] & 0x12) == 0x12)
 			{
 				pgc_cga_gfx80(pgc);	
@@ -2244,10 +2239,6 @@ void pgc_poll(void *p)
                 pgc->linepos = 1;
                 if (pgc->cgadispon && pgc->displine < pgc->maxh)
                 {
-			if (pgc->displine == 0)
-			{
-				video_wait_for_buffer();
-			}
 			/* Don't know why pan needs to be multiplied by -2, but
 			 * the IM1024 driver uses PAN -112 for an offset of 
 			 * 224. */
