@@ -6106,8 +6106,10 @@ static void voodoo_writel(uint32_t addr, uint32_t val, void *p)
 //                pclog("Write CMDFIFO %08x(%08x) %08x  %08x\n", addr, voodoo->cmdfifo_base + (addr & 0x3fffc), val, (voodoo->cmdfifo_base + (addr & 0x3fffc)) & voodoo->fb_mask);
                 *(uint32_t *)&voodoo->fb_mem[(voodoo->cmdfifo_base + (addr & 0x3fffc)) & voodoo->fb_mask] = val;
                 voodoo->cmdfifo_depth_wr++;
-                // if ((voodoo->cmdfifo_depth_wr - voodoo->cmdfifo_depth_rd) < 20)
-                        execute_command(voodoo);
+                /* Check if we wrote inside cmdfifo */
+                uint32_t off = ((voodoo->cmdfifo_base + (addr & 0x3fffc)) & voodoo->fb_mask) - (voodoo->cmdfifo_rp & voodoo->fb_mask);
+                if ((off/4) < (voodoo->cmdfifo_depth_wr - voodoo->cmdfifo_depth_rd))
+                    execute_command(voodoo);
         }
         else switch (addr & 0x3fc)
         {
