@@ -992,6 +992,8 @@ void *voodoo_card_init()
                         voodoo->texture_cache[1][c].refcount = 0;
                 }
         }
+        
+        timer_add(&voodoo->timer, voodoo_callback, voodoo, 1);
 
         voodoo->svga = svga_get_pri();
         voodoo->fbiInit0 = 0;
@@ -1085,6 +1087,8 @@ void *voodoo_2d3d_card_init(int type)
                         voodoo->texture_cache[1][c].refcount = 0;
                 }
         }
+
+        timer_add(&voodoo->timer, voodoo_callback, voodoo, 1);
 
         voodoo->fbiInit0 = 0;
 
