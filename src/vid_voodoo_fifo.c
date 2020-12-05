@@ -273,7 +273,8 @@ void voodoo_execute_command(voodoo_t *voodoo)
                 if ((voodoo->cmdfifo_depth_wr - voodoo->cmdfifo_depth_rd) < cmd_size)
                 {
                         /* Push back the header */
-                        voodoo->cmdfifo_depth_rd--;
+                        if (!voodoo->cmdfifo_in_sub)
+                                voodoo->cmdfifo_depth_rd--;
                         voodoo->cmdfifo_rp -= 4;
                         break;
                 }
