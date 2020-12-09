@@ -7,6 +7,7 @@
 #include "mouse.h"
 #include "wx-display.h"
 #include "plat-keyboard.h"
+#include "wx-sdl2.h"
 
 #ifdef _WIN32
 #define BITMAP WINDOWS_BITMAP
@@ -318,7 +319,7 @@ LRESULT CALLBACK subWindowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPAR
 int display_init()
 {
         SDL_SetHint(SDL_HINT_WINDOWS_DISABLE_THREAD_NAMING, "1");
-        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0)
+        if (SDL_Init(SDL_INIT_VIDEO) < 0)
         {
                 printf("SDL could not initialize! Error: %s\n", SDL_GetError());
                 return 0;
@@ -930,7 +931,19 @@ int renderer_thread(void* params)
                         if (!render())
                                 internal_rendering = 0;
 
-                        SDL_Delay(1);
+                        SDL_LockMutex(syncMutex);
+                        syncRender = 0;
+                        SDL_CondSignal(syncCond);
+                        SDL_UnlockMutex(syncMutex);
+
+                        if (!rendering || !internal_rendering)
+                                break;
+
+                        SDL_LockMutex(syncMutex);
+                        while (!syncRender) {
+                                SDL_CondWait(syncCond, syncMutex);
+                        }
+                        SDL_UnlockMutex(syncMutex);
                 }
                 window_close();
         }
@@ -1000,7 +1013,12 @@ void renderer_stop(int timeout)
         if (rendering)
         {
                 SDL_LockMutex(rendererMutex);
+                SDL_LockMutex(syncMutex);
                 rendering = 0;
+                syncRender = 1;
+                SDL_CondSignal(syncCond);
+                SDL_UnlockMutex(syncMutex);
+
                 if (timeout)
                         SDL_CondWaitTimeout(rendererCond, rendererMutex, timeout);
                 else
