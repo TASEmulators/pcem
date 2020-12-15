@@ -322,6 +322,7 @@ void initpc(int argc, char *argv[])
 	{
 		if (cdrom_drive == CDROM_IMAGE)
 		{
+            image_init_list();
 			FILE *ff = fopen(image_path, "rb");
 			if (ff)
 			{
@@ -453,6 +454,7 @@ void resetpchard()
 	{
 		if (cdrom_drive == CDROM_IMAGE)
 		{
+            image_init_list();
 			FILE *ff = fopen(image_path, "rb");
 			if (ff)
 			{
@@ -749,8 +751,8 @@ void loadconfig(char *fn)
         zip_channel = config_get_int(CFG_MACHINE, NULL, "zip_channel", -1);
         
         p = (char *)config_get_string(CFG_MACHINE, NULL, "cdrom_path", "");
-        if (p) strcpy(image_path, p);
-        else   strcpy(image_path, "");
+        if (p) strcpy(image_list, p);
+        else   strcpy(image_list, "");
         
         hdc[0].spt = config_get_int(CFG_MACHINE, NULL, "hdc_sectors", 0);
         hdc[0].hpc = config_get_int(CFG_MACHINE, NULL, "hdc_heads", 0);
@@ -910,7 +912,7 @@ void saveconfig(char *fn)
         config_set_int(CFG_MACHINE, NULL, "mem_size", mem_size);
         config_set_int(CFG_MACHINE, NULL, "cdrom_drive", cdrom_drive);
         config_set_int(CFG_MACHINE, NULL, "cdrom_channel", cdrom_channel);
-        config_set_string(CFG_MACHINE, NULL, "cdrom_path", image_path);
+        config_set_string(CFG_MACHINE, NULL, "cdrom_path", image_list);
 
         config_set_int(CFG_MACHINE, NULL, "zip_channel", zip_channel);
                 

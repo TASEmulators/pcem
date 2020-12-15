@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <cstring>
 #include "cdrom-image.h"
 #include "dosbox/cdrom.h"
 
@@ -8,7 +9,11 @@ extern "C"
 #include "ide.h"
 }
 
+char image_list[4096];
 char image_path[1024];
+static int image_index = 0;
+static int last_image_index = -1;
+static int image_nb = -1;
 static int image_changed = 0;
 
 extern ATAPI image_atapi;
@@ -494,8 +499,26 @@ void image_close(void)
 //        memset(image_path, 0, 1024);
 }
 
+static void image_extract_path()
+{
+        /* Extract the image_path from the list */
+        int i;
+        char *p;
+        strcpy(image_path, image_list);
+        for (i = 0, p = strtok(image_path, ";"); (p) && (i < image_index); p = strtok(NULL,";"), i++) {}
+
+        if (p)
+                strcpy(image_path, p);
+        else
+                image_path[0] = '\0';
+}
+
 int image_open(char *fn)
 {
+        /* If called with NULL, use the local image */
+        if (!fn)
+                fn = image_path;
+
         if (strcmp(fn, image_path) != 0)
                 image_changed = 1;
 
@@ -506,8 +529,15 @@ int image_open(char *fn)
         if (image_path != fn)
                 strcpy(image_path, fn);
 
+        if (last_image_index != image_index)
+                image_changed = 1;
+        
+        last_image_index = image_index;
+
+        pclog("Load CD image %s\n", image_path);
+
         cdrom = new CDROM_Interface_Image();
-        if (!cdrom->SetDevice(fn, false))
+        if (!cdrom->SetDevice(image_path, false))
         {
                 image_close();
                 return 1;
@@ -518,6 +548,37 @@ int image_open(char *fn)
         cdrom_capacity = image_get_last_block(0, 0, 4096, 0) + 1;
         atapi = &image_atapi;
         return 0;
+}
+
+void image_next()
+{
+        if (image_index < (image_nb-1)) {
+                image_index++;
+                image_extract_path();
+                pclog("Switch to CD image %s\n", image_path);
+        }
+}
+
+void image_previous()
+{
+        if (image_index >= 1) {
+                image_index--;
+                image_extract_path();
+                pclog("Switch to CD image %s\n", image_path);
+        }
+}
+
+void image_init_list()
+{
+        image_index = 0;
+        last_image_index = 0;
+        
+        /* Compute the number of images */
+        image_nb = 1;
+        for (int i=0; image_list[i]; i++)
+                if (image_list[i] == ';') image_nb++;
+        
+        image_extract_path();
 }
 
 static void image_exit(void)

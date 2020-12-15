@@ -6,6 +6,7 @@
 #include "wx-display.h"
 #include "plat-keyboard.h"
 #include "wx-sdl2.h"
+#include "cdrom-image.h"
 
 #ifdef __WINDOWS__
 #define BITMAP WINDOWS_BITMAP
@@ -53,6 +54,9 @@ int trigger_fullscreen = 0;
 int trigger_screenshot = 0;
 int trigger_togglewindow = 0;
 int trigger_inputrelease = 0;
+int trigger_nextcd = 0;
+int trigger_prevcd = 0;
+int trigger_swapcd = 0;
 
 extern void device_force_redraw();
 extern void mouse_wheel_update(int);
@@ -568,6 +572,31 @@ int render()
                 if (!is_fullscreen())
                         window_doinputrelease = 1;
         }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_RIGHT)] && rawinputkey[sdl_scancode(SDL_SCANCODE_COMMA)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_nextcd = 1;
+        else if (trigger_nextcd)
+        {
+                trigger_nextcd = 0;
+                image_next();
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_LEFT)] && rawinputkey[sdl_scancode(SDL_SCANCODE_COMMA)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_prevcd = 1;
+        else if (trigger_prevcd)
+        {
+                trigger_prevcd = 0;
+                image_previous();
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_DOWN)] && rawinputkey[sdl_scancode(SDL_SCANCODE_COMMA)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_swapcd = 1;
+        else if (trigger_swapcd)
+        {
+                trigger_swapcd = 0;
+                image_open(NULL);
+        }
+        
         if (window_doremember)
         {
                 window_doremember = 0;
