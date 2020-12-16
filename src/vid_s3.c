@@ -6,7 +6,6 @@
 #include "mem.h"
 #include "pci.h"
 #include "rom.h"
-#include "thread.h"
 #include "video.h"
 #include "vid_s3.h"
 #include "vid_svga.h"
@@ -28,17 +27,6 @@ enum
         VRAM_1MB = 6,
         VRAM_512KB = 7
 };
-
-#define FIFO_SIZE 65536
-#define FIFO_MASK (FIFO_SIZE - 1)
-#define FIFO_ENTRY_SIZE (1 << 31)
-
-#define FIFO_ENTRIES (s3->fifo_write_idx - s3->fifo_read_idx)
-#define FIFO_FULL    ((s3->fifo_write_idx - s3->fifo_read_idx) >= FIFO_SIZE)
-#define FIFO_EMPTY   (s3->fifo_read_idx == s3->fifo_write_idx)
-
-#define FIFO_TYPE 0xff000000
-#define FIFO_ADDR 0x00ffffff
 
 enum
 {
@@ -131,13 +119,6 @@ typedef struct s3_t
                 int dat_count;
         } accel;
 
-        fifo_entry_t fifo[FIFO_SIZE];
-        volatile int fifo_read_idx, fifo_write_idx;
-
-        thread_t *fifo_thread;
-        event_t *wake_fifo_thread;
-        event_t *fifo_not_full_event;
-        
         int blitter_busy;
         uint64_t blitter_time;
         uint64_t status_time;
@@ -163,19 +144,6 @@ void s3_accel_write_w(uint32_t addr, uint16_t val, void *p);
 void s3_accel_write_l(uint32_t addr, uint32_t val, void *p);
 uint8_t s3_accel_read(uint32_t addr, void *p);
 
-static inline void wake_fifo_thread(s3_t *s3)
-{
-        thread_set_event(s3->wake_fifo_thread); /*Wake up FIFO thread if moving from idle*/
-}
-
-static void s3_wait_fifo_idle(s3_t *s3)
-{
-        while (!FIFO_EMPTY)
-        {
-                wake_fifo_thread(s3);
-                thread_wait_event(s3->fifo_not_full_event, 1);
-        }
-}
 
 static void s3_update_irqs(s3_t *s3)
 {
@@ -864,57 +832,37 @@ static void s3_accel_write_fifo_l(s3_t *s3, uint32_t addr, uint32_t val)
         }
 }
 
-static void fifo_thread(void *param)
+static void s3_queue(s3_t *s3, uint32_t addr, uint32_t val, uint32_t type)
 {
-        s3_t *s3 = (s3_t *)param;
+        uint64_t start_time = timer_read();
+        uint64_t end_time;
         
-        while (1)
+        switch (type)
         {
-                thread_set_event(s3->fifo_not_full_event);
-                thread_wait_event(s3->wake_fifo_thread, -1);
-                thread_reset_event(s3->wake_fifo_thread);
-                s3->blitter_busy = 1;
-                while (!FIFO_EMPTY)
-                {
-                        uint64_t start_time = timer_read();
-                        uint64_t end_time;
-                        fifo_entry_t *fifo = &s3->fifo[s3->fifo_read_idx & FIFO_MASK];
-
-                        switch (fifo->addr_type & FIFO_TYPE)
-                        {
-                                case FIFO_WRITE_BYTE:
-                                s3_accel_write_fifo(s3, fifo->addr_type & FIFO_ADDR, fifo->val);
-                                break;
-                                case FIFO_WRITE_WORD:
-                                s3_accel_write_fifo_w(s3, fifo->addr_type & FIFO_ADDR, fifo->val);
-                                break;
-                                case FIFO_WRITE_DWORD:
-                                s3_accel_write_fifo_l(s3, fifo->addr_type & FIFO_ADDR, fifo->val);
-                                break;
-                                case FIFO_OUT_BYTE:
-                                s3_accel_out_fifo(s3, fifo->addr_type & FIFO_ADDR, fifo->val);
-                                break;
-                                case FIFO_OUT_WORD:
-                                s3_accel_out_fifo_w(s3, fifo->addr_type & FIFO_ADDR, fifo->val);
-                                break;
-                                case FIFO_OUT_DWORD:
-                                s3_accel_out_fifo_l(s3, fifo->addr_type & FIFO_ADDR, fifo->val);
-                                break;
-                        }
-                                                
-                        s3->fifo_read_idx++;
-                        fifo->addr_type = FIFO_INVALID;
-
-                        if (FIFO_ENTRIES > 0xe000)
-                                thread_set_event(s3->fifo_not_full_event);
-
-                        end_time = timer_read();
-                        s3->blitter_time += end_time - start_time;
-                }
-                s3->blitter_busy = 0;
-                s3->subsys_stat |= INT_FIFO_EMP;
-                s3_update_irqs(s3);
+                case FIFO_WRITE_BYTE:
+                s3_accel_write_fifo(s3, addr, val);
+                break;
+                case FIFO_WRITE_WORD:
+                s3_accel_write_fifo_w(s3, addr, val);
+                break;
+                case FIFO_WRITE_DWORD:
+                s3_accel_write_fifo_l(s3, addr, val);
+                break;
+                case FIFO_OUT_BYTE:
+                s3_accel_out_fifo(s3, addr, val);
+                break;
+                case FIFO_OUT_WORD:
+                s3_accel_out_fifo_w(s3, addr, val);
+                break;
+                case FIFO_OUT_DWORD:
+                s3_accel_out_fifo_l(s3, addr, val);
+                break;
         }
+
+        end_time = timer_read();
+        s3->blitter_time += end_time - start_time;
+        s3->subsys_stat |= INT_FIFO_EMP;
+        s3_update_irqs(s3);
 }
 
 static void s3_vblank_start(svga_t *svga)
@@ -923,28 +871,6 @@ static void s3_vblank_start(svga_t *svga)
 
         s3->subsys_stat |= INT_VSY;
         s3_update_irqs(s3);
-}
-
-static void s3_queue(s3_t *s3, uint32_t addr, uint32_t val, uint32_t type)
-{
-        fifo_entry_t *fifo = &s3->fifo[s3->fifo_write_idx & FIFO_MASK];
-
-        if (FIFO_FULL)
-        {
-                thread_reset_event(s3->fifo_not_full_event);
-                if (FIFO_FULL)
-                {
-                        thread_wait_event(s3->fifo_not_full_event, -1); /*Wait for room in ringbuffer*/
-                }
-        }
-
-        fifo->val = val;
-        fifo->addr_type = (addr & FIFO_ADDR) | type;
-
-        s3->fifo_write_idx++;
-        
-        if (FIFO_ENTRIES > 0xe000 || FIFO_ENTRIES < 8)
-                wake_fifo_thread(s3);
 }
 
 void s3_out(uint16_t addr, uint8_t val, void *p)
@@ -1418,141 +1344,98 @@ uint8_t s3_accel_in(uint16_t port, void *p)
                 return s3->subsys_cntl;
 
                 case 0x82e8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.cur_y & 0xff;
                 case 0x82e9:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.cur_y  >> 8;
 
                 case 0x86e8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.cur_x & 0xff;
                 case 0x86e9:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.cur_x  >> 8;
 
                 case 0x8ae8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.desty_axstp & 0xff;
                 case 0x8ae9:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.desty_axstp >> 8;
 
                 case 0x8ee8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.destx_distp & 0xff;
                 case 0x8ee9:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.destx_distp >> 8;
 
                 case 0x92e8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.err_term & 0xff;
                 case 0x92e9:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.err_term >> 8;
 
                 case 0x96e8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.maj_axis_pcnt & 0xff;
                 case 0x96e9:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.maj_axis_pcnt >> 8;
 
                 case 0x9ae8:
-                if (!s3->blitter_busy)
-                        wake_fifo_thread(s3);
-                if (FIFO_FULL)
-                        return 0xff; /*FIFO full*/
                 return 0;    /*FIFO empty*/
                 case 0x9ae9:
-                if (!s3->blitter_busy)
-                        wake_fifo_thread(s3);
                 temp = 0;
-                if (!FIFO_EMPTY || s3->force_busy)
+                if (s3->force_busy)
                         temp |= 0x02; /*Hardware busy*/
                 else
                         temp |= 0x04; /*FIFO empty*/
                 s3->force_busy = 0;
-                if (FIFO_FULL)
-                        temp |= 0xf8; /*FIFO full*/
                 return temp;
 
                 case 0xa2e8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.bkgd_color & 0xff;
                 case 0xa2e9:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.bkgd_color >> 8;
                 case 0xa2ea:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.bkgd_color >> 16;
                 case 0xa2eb:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.bkgd_color >> 24;
 
                 case 0xa6e8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.frgd_color & 0xff;
                 case 0xa6e9:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.frgd_color >> 8;
                 case 0xa6ea:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.frgd_color >> 16;
                 case 0xa6eb:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.frgd_color >> 24;
 
                 case 0xaae8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.wrt_mask & 0xff;
                 case 0xaae9:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.wrt_mask >> 8;
                 case 0xaaea:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.wrt_mask >> 16;
                 case 0xaaeb:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.wrt_mask >> 24;
 
                 case 0xaee8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.rd_mask & 0xff;
                 case 0xaee9:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.rd_mask >> 8;
                 case 0xaeea:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.rd_mask >> 16;
                 case 0xaeeb:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.rd_mask >> 24;
 
                 case 0xb2e8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.color_cmp & 0xff;
                 case 0xb2e9:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.color_cmp >> 8;
                 case 0xb2ea:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.color_cmp >> 16;
                 case 0xb2eb:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.color_cmp >> 24;
 
                 case 0xb6e8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.bkgd_mix;
 
                 case 0xbae8:
-                s3_wait_fifo_idle(s3);
                 return s3->accel.frgd_mix;
 
                 case 0xbee8:
-                s3_wait_fifo_idle(s3);
                 temp = s3->accel.multifunc[0xf] & 0xf;
                 switch (temp)
                 {
@@ -1570,7 +1453,6 @@ uint8_t s3_accel_in(uint16_t port, void *p)
                 }
                 return 0xff;
                 case 0xbee9:
-                s3_wait_fifo_idle(s3);
                 temp = s3->accel.multifunc[0xf] & 0xf;
                 s3->accel.multifunc[0xf]++;
                 switch (temp)
@@ -2785,10 +2667,7 @@ static void *s3_init(char *bios_fn, int chip)
         
         s3->chip = chip;
 
-        s3->wake_fifo_thread = thread_create_event();
-        s3->fifo_not_full_event = thread_create_event();
-        s3->fifo_thread = thread_create(fifo_thread, s3);
-        
+
         s3->int_line = 0;
  
         return s3;
@@ -2880,10 +2759,6 @@ void s3_close(void *p)
 
         svga_close(&s3->svga);
         
-        thread_kill(s3->fifo_thread);
-        thread_destroy_event(s3->wake_fifo_thread);
-        thread_destroy_event(s3->fifo_not_full_event);
-
         free(s3);
 }
 
