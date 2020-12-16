@@ -264,7 +264,7 @@ void initpc(int argc, char *argv[])
                         if ((c+1) == argc)
                                 break;
 
-                        strncpy(discfns[0], argv[c+1], 256);
+                        strncpy(disc_list[0], argv[c+1], 4096);
                         c++;
                         override_drive_a = 1;
                 }
@@ -273,7 +273,7 @@ void initpc(int argc, char *argv[])
                         if ((c+1) == argc)
                                 break;
 
-                        strncpy(discfns[1], argv[c+1], 256);
+                        strncpy(disc_list[1], argv[c+1], 4096);
                         c++;
                         override_drive_b = 1;
                 }
@@ -401,6 +401,8 @@ void resetpchard()
         mem_alloc();
         fdc_init();
 	disc_reset();
+        disc_init_list(0);
+        disc_init_list(1);
         disc_load(0, discfns[0]);
         disc_load(1, discfns[1]);
 
@@ -724,15 +726,15 @@ void loadconfig(char *fn)
         if (!override_drive_a)
         {
                 p = (char *)config_get_string(CFG_MACHINE, NULL, "disc_a", "");
-                if (p) strcpy(discfns[0], p);
-                else   strcpy(discfns[0], "");
+                if (p) strcpy(disc_list[0], p);
+                else   strcpy(disc_list[0], "");
         }
 
         if (!override_drive_b)
         {
                 p = (char *)config_get_string(CFG_MACHINE, NULL, "disc_b", "");
-                if (p) strcpy(discfns[1], p);
-                else   strcpy(discfns[1], "");
+                if (p) strcpy(disc_list[1], p);
+                else   strcpy(disc_list[1], "");
         }
 
         p = (char *)config_get_string(CFG_MACHINE, NULL, "hdd_controller", "");
@@ -905,8 +907,8 @@ void saveconfig(char *fn)
         config_set_int(CFG_MACHINE, NULL, "video_speed", video_speed);
         config_set_string(CFG_MACHINE, NULL, "sndcard", sound_card_get_internal_name(sound_card_current));
         config_set_int(CFG_MACHINE, NULL, "cpu_speed", cpuspeed);
-        config_set_string(CFG_MACHINE, NULL, "disc_a", discfns[0]);
-        config_set_string(CFG_MACHINE, NULL, "disc_b", discfns[1]);
+        config_set_string(CFG_MACHINE, NULL, "disc_a", disc_list[0]);
+        config_set_string(CFG_MACHINE, NULL, "disc_b", disc_list[1]);
         config_set_string(CFG_MACHINE, NULL, "hdd_controller", hdd_controller_name);
 
         config_set_int(CFG_MACHINE, NULL, "mem_size", mem_size);

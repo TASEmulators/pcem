@@ -47,11 +47,16 @@ void fdc_indexpulse();
 /*extern int fdc_ready;
 extern int fdc_indexcount;*/
 
+void disc_next(int drive);
+void disc_previous(int drive);
+void disc_init_list(int drive);
+
 extern int motorspin;
 extern int motoron;
 
 extern int defaultwriteprot;
-//extern char discfns[4][260];
+
+extern char disc_list[2][4096];
 
 extern int writeprot[2], fwriteprot[2];
 extern int disc_track[2];

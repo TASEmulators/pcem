@@ -19,7 +19,10 @@ int drive_type[2];
 
 int curdrive = 0;
 
-//char discfns[2][260] = {"", ""};
+char disc_list[2][4096];
+static int disc_index[2];
+static int disc_nb[2];
+
 int defaultwriteprot = 0;
 
 int fdc_ready;
@@ -84,7 +87,7 @@ void disc_load(int drive, char *fn)
         {
                 if (!strcasecmp(p, loaders[c].ext) && (size == loaders[c].size || loaders[c].size == -1))
                 {
-                        pclog("Loading as %s\n", p);
+                        fprintf(stdout, "Loading disc image %s of format %s into drive %c:\n", fn, p, 'a'+drive);
                         driveloaders[drive] = c;
                         loaders[c].load(drive, fn);
                         drive_empty[drive] = 0;
@@ -95,7 +98,7 @@ void disc_load(int drive, char *fn)
                 }
                 c++;
         }
-        pclog("Couldn't load %s %s\n",fn,p);
+        fprintf(stdout, "Couldn't load %s %s\n",fn,p);
         drive_empty[drive] = 1;
         discfns[drive][0] = 0;
 }
@@ -105,7 +108,7 @@ void disc_close(int drive)
 //        pclog("disc_close %i\n", drive);
         if (loaders[driveloaders[drive]].close) loaders[driveloaders[drive]].close(drive);
         drive_empty[drive] = 1;
-        discfns[drive][0] = 0;
+        // discfns[drive][0] = 0;
         drives[drive].hole = NULL;
         drives[drive].poll = NULL;
         drives[drive].seek = NULL;
@@ -113,6 +116,55 @@ void disc_close(int drive)
         drives[drive].writesector = NULL;
         drives[drive].readaddress = NULL;
         drives[drive].format = NULL;
+}
+
+static void disc_extract_path(int drive)
+{
+        /* Extract the disc_path from the list */
+        int i;
+        char *p;
+        strcpy(discfns[drive], disc_list[drive]);
+        for (i = 0, p = strtok(discfns[drive], ";"); (p) && (i < disc_index[drive]); p = strtok(NULL,";"), i++) {}
+
+        if (p)
+                strcpy(discfns[drive], p);
+        else
+                discfns[drive][0] = '\0';
+}
+
+void disc_next(int drive)
+{
+        if (disc_index[drive] < (disc_nb[drive]-1)) {
+                disc_index[drive]++;
+                disc_extract_path(drive);
+                fprintf(stdout, "Switch to disc image %s for drive %c:\n", discfns[drive], 'a'+drive);
+        }
+}
+
+void disc_previous(int drive)
+{
+        if (disc_index[drive] >= 1) {
+                disc_index[drive]--;
+                disc_extract_path(drive);
+                fprintf(stdout, "Switch to disc image %s for drive %c:\n", discfns[drive], 'a'+drive);
+        }
+}
+
+void disc_init_list(int drive)
+{
+        disc_index[drive] = 0;
+        
+        /* Compute the number of discs */
+        if (disc_list[drive][0] == '\0') {
+            disc_nb[drive] = 0;
+            discfns[drive][0] = '\0';
+            return;
+        }
+        disc_nb[drive] = 1;
+        for (int i=0; disc_list[drive][i]; i++)
+                if (disc_list[drive][i] == ';') disc_nb[drive]++;
+        
+        disc_extract_path(drive);
 }
 
 int disc_notfound=0;

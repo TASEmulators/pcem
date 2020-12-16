@@ -64,6 +64,12 @@ int trigger_fullscreen = 0;
 int trigger_screenshot = 0;
 int trigger_togglewindow = 0;
 int trigger_inputrelease = 0;
+int trigger_nextdisc[2] = {0, 0};
+int trigger_prevdisc[2] = {0, 0};
+int trigger_swapdisc[2] = {0, 0};
+int trigger_nextcd = 0;
+int trigger_prevcd = 0;
+int trigger_swapcd = 0;
 
 extern void device_force_redraw();
 extern void mouse_wheel_update(int);
@@ -806,6 +812,80 @@ int render()
                 trigger_inputrelease = 0;
                 if (!is_fullscreen())
                         window_doinputrelease = 1;
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_RIGHT)] && rawinputkey[sdl_scancode(SDL_SCANCODE_PERIOD)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_nextdisc[0] = 1;
+        else if (trigger_nextdisc[0])
+        {
+                trigger_nextdisc[0] = 0;
+                disc_next(0);
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_LEFT)] && rawinputkey[sdl_scancode(SDL_SCANCODE_PERIOD)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_prevdisc[0] = 1;
+        else if (trigger_prevdisc[0])
+        {
+                trigger_prevdisc[0] = 0;
+                disc_previous(0);
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_DOWN)] && rawinputkey[sdl_scancode(SDL_SCANCODE_PERIOD)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_swapdisc[0] = 1;
+        else if (trigger_swapdisc[0])
+        {
+                trigger_swapdisc[0] = 0;
+                disc_close(0);
+                disc_load(0, discfns[0]);
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_RIGHT)] && rawinputkey[sdl_scancode(SDL_SCANCODE_SLASH)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_nextdisc[1] = 1;
+        else if (trigger_nextdisc[1])
+        {
+                trigger_nextdisc[1] = 0;
+                disc_next(1);
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_LEFT)] && rawinputkey[sdl_scancode(SDL_SCANCODE_SLASH)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_prevdisc[1] = 1;
+        else if (trigger_prevdisc[1])
+        {
+                trigger_prevdisc[1] = 0;
+                disc_previous(1);
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_DOWN)] && rawinputkey[sdl_scancode(SDL_SCANCODE_SLASH)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_swapdisc[1] = 1;
+        else if (trigger_swapdisc[1])
+        {
+                trigger_swapdisc[1] = 0;
+                disc_close(1);
+                disc_load(1, discfns[1]);
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_RIGHT)] && rawinputkey[sdl_scancode(SDL_SCANCODE_COMMA)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_nextcd = 1;
+        else if (trigger_nextcd)
+        {
+                trigger_nextcd = 0;
+                image_next();
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_LEFT)] && rawinputkey[sdl_scancode(SDL_SCANCODE_COMMA)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_prevcd = 1;
+        else if (trigger_prevcd)
+        {
+                trigger_prevcd = 0;
+                image_previous();
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_DOWN)] && rawinputkey[sdl_scancode(SDL_SCANCODE_COMMA)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_swapcd = 1;
+        else if (trigger_swapcd)
+        {
+                trigger_swapcd = 0;
+                image_open(NULL);
         }
         if (window_doremember)
         {

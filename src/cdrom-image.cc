@@ -534,7 +534,7 @@ int image_open(char *fn)
         
         last_image_index = image_index;
 
-        pclog("Load CD image %s\n", image_path);
+        fprintf(stdout, "Loading CD image %s\n", image_path);
 
         cdrom = new CDROM_Interface_Image();
         if (!cdrom->SetDevice(image_path, false))
@@ -555,7 +555,7 @@ void image_next()
         if (image_index < (image_nb-1)) {
                 image_index++;
                 image_extract_path();
-                pclog("Switch to CD image %s\n", image_path);
+                fprintf(stdout, "Switch to CD image %s\n", image_path);
         }
 }
 
@@ -564,7 +564,7 @@ void image_previous()
         if (image_index >= 1) {
                 image_index--;
                 image_extract_path();
-                pclog("Switch to CD image %s\n", image_path);
+                fprintf(stdout, "Switch to CD image %s\n", image_path);
         }
 }
 
