@@ -495,6 +495,7 @@ void image_close(void)
         {
                 delete cdrom;
                 cdrom = NULL;
+                fprintf(stdout, "Ejecting CD image\n");
         }
 //        memset(image_path, 0, 1024);
 }

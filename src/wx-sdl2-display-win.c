@@ -67,9 +67,11 @@ int trigger_inputrelease = 0;
 int trigger_nextdisc[2] = {0, 0};
 int trigger_prevdisc[2] = {0, 0};
 int trigger_swapdisc[2] = {0, 0};
+int trigger_ejectdisc[2] = {0, 0};
 int trigger_nextcd = 0;
 int trigger_prevcd = 0;
 int trigger_swapcd = 0;
+int trigger_ejectcd = 0;
 
 extern void device_force_redraw();
 extern void mouse_wheel_update(int);
@@ -831,6 +833,14 @@ int render()
         }
         else if (rawinputkey[sdl_scancode(SDL_SCANCODE_DOWN)] && rawinputkey[sdl_scancode(SDL_SCANCODE_PERIOD)] &&
                         (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_ejectdisc[0] = 1;
+        else if (trigger_ejectdisc[0])
+        {
+                trigger_ejectdisc[0] = 0;
+                disc_close(0);
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_UP)] && rawinputkey[sdl_scancode(SDL_SCANCODE_PERIOD)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
                 trigger_swapdisc[0] = 1;
         else if (trigger_swapdisc[0])
         {
@@ -863,6 +873,14 @@ int render()
                 disc_close(1);
                 disc_load(1, discfns[1]);
         }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_UP)] && rawinputkey[sdl_scancode(SDL_SCANCODE_SLASH)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_ejectdisc[1] = 1;
+        else if (trigger_ejectdisc[1])
+        {
+                trigger_ejectdisc[1] = 0;
+                disc_close(1);
+        }
         else if (rawinputkey[sdl_scancode(SDL_SCANCODE_RIGHT)] && rawinputkey[sdl_scancode(SDL_SCANCODE_COMMA)] &&
                         (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
                 trigger_nextcd = 1;
@@ -886,6 +904,14 @@ int render()
         {
                 trigger_swapcd = 0;
                 image_open(NULL);
+        }
+        else if (rawinputkey[sdl_scancode(SDL_SCANCODE_UP)] && rawinputkey[sdl_scancode(SDL_SCANCODE_COMMA)] &&
+                        (rawinputkey[sdl_scancode(SDL_SCANCODE_LCTRL)] || rawinputkey[sdl_scancode(SDL_SCANCODE_RCTRL)]))
+                trigger_ejectcd = 1;
+        else if (trigger_ejectcd)
+        {
+                trigger_ejectcd = 0;
+                image_close();
         }
         if (window_doremember)
         {

@@ -106,6 +106,7 @@ void disc_load(int drive, char *fn)
 void disc_close(int drive)
 {
 //        pclog("disc_close %i\n", drive);
+        fprintf(stdout, "Closing disc drive %c:\n", 'a'+drive);
         if (loaders[driveloaders[drive]].close) loaders[driveloaders[drive]].close(drive);
         drive_empty[drive] = 1;
         // discfns[drive][0] = 0;
