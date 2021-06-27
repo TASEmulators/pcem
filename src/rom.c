@@ -5,6 +5,7 @@
 #include "mem.h"
 #include "rom.h"
 #include "paths.h"
+#include "wx-common.h"
 
 FILE *romfopen(char *fn, char *mode)
 {
@@ -18,8 +19,11 @@ FILE *romfopen(char *fn, char *mode)
                 put_backslash(s);
                 strcat(s, fn);
                 f = fopen(s, mode);
-                if (f)
-                        return f;
+                if (f) {
+                    if (emulation_state == EMULATION_RUNNING)
+                        fprintf(stdout, "Load ROM image %s\n", s);
+                    return f;
+                }
         }
         return 0;
 }
