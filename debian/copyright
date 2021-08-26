@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: pcem
 Upstream-Contact: Sarah Walker
-Source: <https://github.com/sarah-walker-pcem/pcem>
+Source: https://github.com/sarah-walker-pcem/pcem
 
 Files: *
 Copyright: 2007-2021 Sarah Walker

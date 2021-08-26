@@ -2,10 +2,15 @@ Source: pcem
 Section: unknown
 Priority: optional
 Maintainer: Clement Gallet <clement.gallet@ens-lyon.org>
-Build-Depends: debhelper-compat (= 13), autotools-dev, libsdl2-dev, libwxbase3.0-dev, libopenal-dev, libasound2-dev
+Build-Depends: debhelper-compat (= 12),
+               autotools-dev,
+               libsdl2-dev,
+               libwxbase3.0-dev,
+               libopenal-dev,
+               libasound2-dev
 Standards-Version: 4.5.1
-Homepage: <https://pcem-emulator.co.uk>
-Vcs-Git: https://github.com/sarah-walker-pcem/pcem.git
+Homepage: https://pcem-emulator.co.uk
+Vcs-Git: https://github.com/TASVideos/pcem.git
 Rules-Requires-Root: no
 
 Package: pcem

@@ -1,10 +1,13 @@
-pcem (17) unstable; urgency=medium
+pcem (17+st-1) unstable; urgency=medium
 
-  * New machines added - Amstrad PC5086, Compaq Deskpro, Samsung SPC-6033P, Samsung SPC-6000A, Intel VS440FX, Gigabyte GA-686BX
-  * New graphics cards added - 3DFX Voodoo Banshee, 3DFX Voodoo 3 2000, 3DFX Voodoo 3 3000, Creative 3D Blaster Banshee, Kasan Hangulmadang-16, Trident TVGA9000B
-  * New CPUs - Pentium Pro, Pentium II, Celeron, Cyrix III
-  * VHD disc image support
-  * Numerous bug fixes
-  * A few other bits and pieces 
+  * Make blit, cdaudio, s3virge and voodoo single-threaded
+  * Handle subroutine in header pushback
+  * Add back a mandatory timer
+  * Implement renderer sync for Windows
+  * Implement CD swapping with hotkeys
+  * Implement floppy switch
+  * Make S3 single-threaded
+  * Add shortcuts to eject cd/floppy
+  * Print loaded ROM path when running
     
- -- Sarah Walker <sarah-walker-pcem>  Tue, 24 Jun 2021 00:00:00 +0000
+ -- Clement Gallet <clement.gallet@ens-lyon.org>  Tue, 24 Jun 2021 00:00:00 +0000
