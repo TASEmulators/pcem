@@ -17,3 +17,5 @@ Package: pcem
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: PCem (short for PC Emulator) is an IBM PC emulator
+ This version of PCem has multi-threading disabled
+ in order to ensure determinism when running though libTAS.
