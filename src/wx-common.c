@@ -9,6 +9,7 @@ void wx_loadconfig()
         show_mount_paths = config_get_int(CFG_GLOBAL, "wxWidgets", "show_mount_paths", show_mount_paths);
         show_status = config_get_int(CFG_GLOBAL, "wxWidgets", "show_status", show_status);
         show_machine_on_start = config_get_int(CFG_GLOBAL, "wxWidgets", "show_machine_on_start", show_machine_on_start);
+        enable_rightclick_menu = config_get_int(CFG_GLOBAL, "wxWidgets", "enable_rightclick_menu", enable_rightclick_menu);
 
         confirm_on_reset_machine = config_get_int(CFG_GLOBAL, "wxWidgets", "confirm_on_reset_machine", confirm_on_reset_machine);
         confirm_on_stop_emulation = config_get_int(CFG_GLOBAL, "wxWidgets", "confirm_on_stop_emulation", confirm_on_stop_emulation);
@@ -25,6 +26,7 @@ void wx_saveconfig()
         config_set_int(CFG_GLOBAL, "wxWidgets", "show_mount_paths", show_mount_paths);
         config_set_int(CFG_GLOBAL, "wxWidgets", "show_status", show_status);
         config_set_int(CFG_GLOBAL, "wxWidgets", "show_machine_on_start", show_machine_on_start);
+        config_set_int(CFG_GLOBAL, "wxWidgets", "enable_rightclick_menu", enable_rightclick_menu);
 
         config_set_int(CFG_GLOBAL, "wxWidgets", "confirm_on_reset_machine", confirm_on_reset_machine);
         config_set_int(CFG_GLOBAL, "wxWidgets", "confirm_on_stop_emulation", confirm_on_stop_emulation);

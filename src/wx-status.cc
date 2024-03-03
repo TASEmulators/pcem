@@ -13,13 +13,14 @@ extern "C" {
 }
 
 int show_machine_on_start = 0;
-int confirm_on_stop_emulation = 1;
-int confirm_on_reset_machine = 1;
+int confirm_on_stop_emulation = 0;
+int confirm_on_reset_machine = 0;
 int show_status = 0;
 int show_speed_history = 0;
 int show_disc_activity = 1;
 int show_machine_info = 1;
 int show_mount_paths = 0;
+int enable_rightclick_menu = 1;
 
 #define ACTIVITY_TEXT wxT("Activity")
 

@@ -8,6 +8,7 @@ extern int show_disc_activity;
 extern int show_mount_paths;
 extern int wx_window_x;
 extern int wx_window_y;
+extern int enable_rightclick_menu;
 
 typedef enum { EMULATION_STOPPED, EMULATION_PAUSED, EMULATION_RUNNING } emulation_state_t;
 extern emulation_state_t emulation_state;

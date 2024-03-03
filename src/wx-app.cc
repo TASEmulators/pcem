@@ -86,7 +86,8 @@ Frame::Frame(App* app, const wxString& title, const wxPoint& pos,
         Bind(wxEVT_MENU, &Frame::OnCommand, this);
         Bind(wxEVT_TOOL, &Frame::OnCommand, this);
         Bind(WX_SHOW_WINDOW_EVENT, &Frame::OnShowWindowEvent, this);
-        Bind(WX_POPUP_MENU_EVENT, &Frame::OnPopupMenuEvent, this);
+        if (enable_rightclick_menu)
+                Bind(WX_POPUP_MENU_EVENT, &Frame::OnPopupMenuEvent, this);
         Bind(WX_EXIT_EVENT, &Frame::OnExitEvent, this);
         Bind(WX_EXIT_COMPLETE_EVENT, &Frame::OnExitCompleteEvent, this);
         Bind(WX_STOP_EMULATION_EVENT, &Frame::OnStopEmulationEvent, this);
