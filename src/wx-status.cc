@@ -335,7 +335,10 @@ void StatusFrame::OnCommand(wxCommandEvent& event)
         else if (event.GetId() == XRCID("IDM_ABOUT"))
         {
                 wxDialog dlg;
+                char s[512];
+                sprintf(s, "%s\nhttps://pcem-emulator.co.uk/\n\nThis program is licensed under the GNU General Public License version 2.\nSee COPYING for more details.\n\nToolbar-icons made by Roundicons (https://roundicons.com/) from www.flaticon.com\nOther icons made by FatCow (http://www.fatcow.com/free-icons/)", PACKAGE_STRING);
                 wxXmlResource::Get()->LoadDialog(&dlg, this, "AboutDlg");
+                wx_setdlgitemtext(&dlg, XRCID("AboutLabel"), s);
                 dlg.Fit();
                 dlg.ShowModal();
         }

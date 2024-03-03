@@ -224,6 +224,7 @@ void initpc(int argc, char *argv[])
         //char *p;
 //        char *config_file = NULL;
         int c;
+        printf("%s\n", PACKAGE_STRING);
 
         for (c = 1; c < argc; c++)
         {
@@ -578,7 +579,7 @@ void runpc()
         if (win_title_update)
         {
                 win_title_update=0;
-                sprintf(s, "PCem v17 - %i%% - %s - %s - %s", fps, model_getname(), models[model].cpu[cpu_manufacturer].cpus[cpu].name, (!mousecapture) ? "Click to capture mouse" : ((mouse_get_type(mouse_type) & MOUSE_TYPE_3BUTTON) ? "Press CTRL-END to release mouse" : "Press CTRL-END or middle button to release mouse"));
+                sprintf(s, "%s - %i%% - %s - %s - %s", PACKAGE_STRING, fps, model_getname(), models[model].cpu[cpu_manufacturer].cpus[cpu].name, (!mousecapture) ? "Click to capture mouse" : ((mouse_get_type(mouse_type) & MOUSE_TYPE_3BUTTON) ? "Press CTRL-END to release mouse" : "Press CTRL-END or middle button to release mouse"));
                 set_window_title(s);
         }
         done++;
