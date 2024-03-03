@@ -3673,6 +3673,7 @@
 	
 	<object class="wxDialog" name="AboutDlg">
 		<style>wxDEFAULT_DIALOG_STYLE</style>
+		<size>430,175</size>
 		<title></title>
 		<centered>1</centered>
 		<object class="wxPanel" name="ROOT_PANEL">
@@ -3682,8 +3683,8 @@
 					<option>0</option>
 					<flag>wxALL</flag>
 					<border>5</border>
-					<object class="wxStaticText">
-						<label>PCem v17\nhttps://pcem-emulator.co.uk/\n\nThis program is licensed under the GNU General Public License version 2.\nSee COPYING for more details.\n\nToolbar-icons made by Roundicons (https://roundicons.com/) from www.flaticon.com\nOther icons made by FatCow (http://www.fatcow.com/free-icons/)</label>
+					<object class="wxStaticText" name="AboutLabel">
+						<label></label>
 						<wrap>-1</wrap>
 					</object>
 				</object>
