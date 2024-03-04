@@ -1,3 +1,15 @@
+pcem (17+st-2) unstable; urgency=medium
+
+  * Fix "voodoo 3 card fails dxdiag's Direct3D spinning cube test" #10 
+  * Emulate cycles based on elapsed time instead of fixed 10ms
+  * Add vscode files (requires Autotools Integration extension)
+  * Add config option to disable rightclick menu (enabled by default)
+  * Pick name and version from one place - configure.ac
+  * Print version upon launch
+  * Remove generated files from version control
+    
+ -- Clement Gallet <clement.gallet@ens-lyon.org>  Mon, 4 Mar 2024 00:00:00 +0000
+
 pcem (17+st-1) unstable; urgency=medium
 
   * Make blit, cdaudio, s3virge and voodoo single-threaded
