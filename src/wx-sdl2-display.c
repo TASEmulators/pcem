@@ -787,6 +787,12 @@ int renderer_thread(void* params)
 
         window_setup();
 
+        SDL_LockMutex(syncMutex);
+        while (!syncRender) {
+            SDL_CondWait(syncCond, syncMutex);
+        }
+        SDL_UnlockMutex(syncMutex);
+        
         rendering = 1;
         while (rendering) {
 

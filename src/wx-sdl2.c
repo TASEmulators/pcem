@@ -74,7 +74,7 @@ SDL_Thread* mainthreadh = NULL;
 
 SDL_mutex* syncMutex;
 SDL_cond* syncCond;
-int syncRender = 1;
+int syncRender = 0;
 
 int running = 0;
 
@@ -185,10 +185,16 @@ int mainthread(void* param)
         SDL_SetThreadPriority(SDL_THREAD_PRIORITY_HIGH);
 
         int frames = 0;
-        uint32_t old_time, new_time;
 
-        drawits = 0;
-        old_time = SDL_GetTicks();
+        uint64_t start_time = timer_read();
+        uint64_t delta_time, end_time;
+        uint64_t delta_time_rem = 0;
+
+        SDL_LockMutex(syncMutex);
+        syncRender = 1;
+        SDL_CondSignal(syncCond);
+        SDL_UnlockMutex(syncMutex);
+
         running = 1;
         while (running)
         {
@@ -197,26 +203,37 @@ int mainthread(void* param)
                     SDL_CondWait(syncCond, syncMutex);
                 }
                 SDL_UnlockMutex(syncMutex);
-
-                new_time = SDL_GetTicks();
-                drawits += new_time - old_time;
-                old_time = new_time;
-
-                if (drawits > 0 && !pause)
+                
+                
+                if (!pause)
                 {
-                        uint64_t start_time = timer_read();
-                        uint64_t end_time;
-                        drawits -= 10;
-                        runpc();
-                        frames++;
-                        if (frames >= 200 && nvr_dosave)
-                        {
-                                frames = 0;
-                                nvr_dosave = 0;
-                                savenvr();
+                    end_time = timer_read();
+                    delta_time = end_time - start_time;
+                    uint64_t delta_ms = (delta_time * 1000ULL + delta_time_rem) / timer_freq;
+                    
+                    /* Check if we have enough time elapsed to run some cycles */
+                    if (delta_ms) {
+                        
+                        /* Set a threshold */
+                        if (delta_ms > 50) {
+                            delta_ms = 50;
+                            delta_time_rem = 0;
                         }
-                        end_time = timer_read();
-                        main_time += end_time - start_time;
+                        else {
+                            delta_time_rem = (delta_time * 1000ULL + delta_time_rem) % timer_freq;
+                        }
+                        runpc(delta_ms);
+                        
+                        start_time = end_time;
+                    }
+                    
+                    frames++;
+                    if (frames >= 200 && nvr_dosave)
+                    {
+                            frames = 0;
+                            nvr_dosave = 0;
+                            savenvr();
+                    }
                 }
                 else
                         SDL_Delay(1);

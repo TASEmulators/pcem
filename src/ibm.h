@@ -431,7 +431,7 @@ void set_window_title(const char *s);
 void updatewindowsize(int x, int y);
 
 void initpc(int argc, char *argv[]);
-void runpc();
+void runpc(uint64_t ms);
 void closepc();
 void resetpc();
 void resetpchard();

@@ -505,11 +505,11 @@ int serial_fifo_read, serial_fifo_write;
 
 int emu_fps = 0;
 
-void runpc()
+void runpc(uint64_t ms)
 {
         char s[200];
         int done=0;
-        int cycles_to_run = cpu_get_speed() / 100;
+        int cycles_to_run = (ms * (uint64_t)cpu_get_speed()) / 1000ULL;
         
         override_drive_a = override_drive_b = 0;
 
@@ -534,12 +534,12 @@ void runpc()
         joystick_poll();
         endblit();
 
-        framecountx++;
+        framecountx+=ms;
         framecount++;
-        if (framecountx>=100)
+        if (framecountx>=1000)
         {
                 pclog("onesec\n");
-                framecountx=0;
+                framecountx-=1000;
                 mips=(float)insc/1000000.0f;
                 insc=0;
                 flops=(float)fpucount/1000000.0f;
