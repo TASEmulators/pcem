@@ -1,0 +1,16 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "build",
+            "label": "build",
+            "target": {
+                "builddir": "",
+                "goal": "all"
+            },
+            "problemMatcher": [],
+            "group": "build",
+            "detail": "$(combine) $(file-binary) Build program"
+        }
+    ]
+}
