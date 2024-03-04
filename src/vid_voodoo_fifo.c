@@ -47,7 +47,7 @@ void voodoo_execute_commands(voodoo_set_t *set, voodoo_t *voodoo)
 
 void voodoo_wait_for_swap_complete(voodoo_t *voodoo)
 {
-        if (voodoo->swap_pending)
+        if (voodoo->swap_pending && voodoo->flush)
         {
                 /*Main thread is waiting for FIFO to empty, so skip vsync wait and just swap*/
                 memset(voodoo->dirty_line, 1, sizeof(voodoo->dirty_line));
