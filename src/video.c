@@ -1283,5 +1283,5 @@ void report_framerate_change(unsigned long long num, unsigned long long denom)
 		print = 1;
 	}
 	if (print)
-		fprintf(stdout, "Setting framerate: %d / %d = %.14lf\n", num, denom, (double)num / denom);
+		fprintf(stdout, "Setting framerate at frame %d: %d / %d = %.14lf\n", video_frames, num, denom, (double)num / denom);
 }
