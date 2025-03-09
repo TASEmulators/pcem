@@ -508,6 +508,8 @@ uint8_t rotatevga[8][256];
 int frames = 0;
 int video_frames = 0;
 int video_refresh_rate = 0;
+int framerate_numerator = 1;
+int framerate_denominator = 1;
 
 int fullchange;
 
@@ -1265,4 +1267,21 @@ void cgapal_rebuild(int display_type, int contrast)
                 cgapal[0xf] = makecol(0xff, 0xff, 0xff);
                 break;
         }
+}
+
+void report_framerate_change(unsigned long long num, unsigned long long denom)
+{
+	int print = 0;
+	if (num != framerate_numerator)
+	{
+		framerate_numerator = num;
+		print = 1;
+	}
+	if (denom != framerate_denominator)
+	{
+		framerate_denominator = denom;
+		print = 1;
+	}
+	if (print)
+		fprintf(stdout, "Setting framerate: %d / %d = %.14lf\n", num, denom, (double)num / denom);
 }
