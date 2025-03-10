@@ -15,7 +15,7 @@
 			"label": "configure",
 			"command": "./configure",
 			"args": [
-				"CXXFLAGS=\"-Og -g\""
+				"--enable-debug"
 			],
 			"problemMatcher": []
 		},
