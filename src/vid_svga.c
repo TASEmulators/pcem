@@ -449,7 +449,7 @@ void svga_recalctimings(svga_t *svga)
         printf("total %f on %i cycles off %i cycles frame %i sec %i %02X\n",disptime*crtcconst,svga->dispontime,svga->dispofftime,(svga->dispontime+svga->dispofftime)*svga->vtotal,(svga->dispontime+svga->dispofftime)*svga->vtotal*70,svga->seqregs[1]);
 
         pclog("svga->render %08X\n", svga->render);*/
-	report_framerate_change((unsigned long long)(cpuclock * (float)(1ull << 32) / svga->clock), (unsigned long long)(svga->vtotal * disptime * svga->char_width));
+        report_framerate_change((unsigned long long)(cpuclock * (float)(1ull << 32) / svga->clock), (unsigned long long)(svga->vtotal * svga->htotal * svga->char_width));
 }
 
 extern int cyc_total;

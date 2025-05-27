@@ -1271,17 +1271,17 @@ void cgapal_rebuild(int display_type, int contrast)
 
 void report_framerate_change(unsigned long long num, unsigned long long denom)
 {
-	int print = 0;
-	if (num != framerate_numerator)
-	{
-		framerate_numerator = num;
-		print = 1;
-	}
-	if (denom != framerate_denominator)
-	{
-		framerate_denominator = denom;
-		print = 1;
-	}
-	if (print)
-		fprintf(stdout, "Setting framerate at frame %d: %d / %d = %.14lf\n", video_frames, num, denom, (double)num / denom);
+        int print = 0;
+        if (num != framerate_numerator)
+        {
+                framerate_numerator = num;
+                print = 1;
+        }
+        if (denom != framerate_denominator)
+        {
+                framerate_denominator = denom;
+                print = 1;
+        }
+        if (print)
+                fprintf(stdout, "Setting framerate at frame %d: %d / %d = %.14lf\n", video_frames, num, denom, (double)num / denom);
 }
