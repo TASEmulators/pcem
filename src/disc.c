@@ -185,7 +185,7 @@ int disc_hole(int drive)
 	}
 }
 
-void disc_poll()
+void disc_poll(void*)
 {
         timer_advance_u64(&disc_poll_timer, disc_period * TIMER_USEC);
 

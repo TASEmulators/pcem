@@ -385,7 +385,7 @@ static uint8_t oldkey[272];
 static uint8_t keydelay[272];
 
 void (*keyboard_send)(uint8_t val);
-void (*keyboard_poll)();
+void (*keyboard_poll)(void*);
 int keyboard_scan = 1;
 
 static scancode *at_scancodes;

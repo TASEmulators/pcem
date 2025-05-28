@@ -260,7 +260,7 @@ static uint8_t decodefm(uint16_t dat)
         return temp;
 }
 
-void fdi_stop()
+void fdi_stop(int)
 {
 //        pclog("fdi_stop\n");
         fdi_inread = fdi_inwrite = fdi_inreadaddr = 0;

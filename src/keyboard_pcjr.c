@@ -41,7 +41,7 @@ struct
 static uint8_t key_queue[16];
 static int key_queue_start = 0, key_queue_end = 0;
 
-void keyboard_pcjr_poll()
+void keyboard_pcjr_poll(void*)
 {
         timer_advance_u64(&keyboard_pcjr.send_delay_timer, (220 * TIMER_USEC));
 

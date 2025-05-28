@@ -44,7 +44,7 @@ struct
 static uint8_t key_queue[16];
 static int key_queue_start = 0, key_queue_end = 0;
 
-void keyboard_xt_poll()
+void keyboard_xt_poll(void*)
 {
         timer_advance_u64(&keyboard_xt.send_delay_timer, (1000 * TIMER_USEC));
         if (!(keyboard_xt.pb & 0x40) && romset != ROM_TANDY)
