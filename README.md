@@ -23,6 +23,7 @@ You will need the following libraries (and their dependencies):
 Open a terminal window, navigate to the PCem directory then enter:
 ### Linux
 ```
+autoreconf -i
 ./configure --enable-release
 make
 ```
