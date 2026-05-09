@@ -31,7 +31,7 @@ typedef struct entry_t
         struct list_t list;
         
         char name[256];
-        char data[256];
+        char data[4096];
 } entry_t;
 
 #define list_add(new, head)                             \
@@ -154,9 +154,9 @@ void config_load(int is_global, char *fn)
         while (1)
         {
                 int c;
-                char buffer[256];
+                char buffer[4096];
 
-                fgets(buffer, 255, f);
+                fgets(buffer, 4095, f);
                 if (feof(f)) break;
                 
                 c = 0;
@@ -220,7 +220,7 @@ void config_load(int is_global, char *fn)
                         new_entry = malloc(sizeof(entry_t));
                         memset(new_entry, 0, sizeof(entry_t));
                         strncpy(new_entry->name, name, 256);
-                        strncpy(new_entry->data, &buffer[data_pos], 256);
+                        strncpy(new_entry->data, &buffer[data_pos], 4096);
                         list_add(&new_entry->list, &current_section->entry_head);
 
 //                        pclog("New data under section [%s] : %s = %s\n", current_section->name, new_entry->name, new_entry->data);
@@ -407,7 +407,7 @@ void config_set_string(int is_global, char *head, char *name, char *val)
         if (!entry)
                 entry = create_entry(section, name);
 
-        strncpy(entry->data, val, 256);
+        strncpy(entry->data, val, 4096);
 }
 
 
