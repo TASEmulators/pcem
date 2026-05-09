@@ -35,7 +35,7 @@ static int key_queue_start = 0, key_queue_end = 0;
 
 static uint8_t amstrad_systemstat_1, amstrad_systemstat_2;
 
-void keyboard_amstrad_poll()
+void keyboard_amstrad_poll(void*)
 {
         timer_advance_u64(&keyboard_amstrad.send_delay_timer, (1000 * TIMER_USEC));
         if (keyboard_amstrad.wantirq)

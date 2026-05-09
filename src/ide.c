@@ -1174,12 +1174,12 @@ abort_cmd:
 	ide_irq_raise(ide);
 }
 
-void ide_callback_pri()
+void ide_callback_pri(void*)
 {
 	callbackide(0);
 }
 
-void ide_callback_sec()
+void ide_callback_sec(void*)
 {
 	callbackide(1);
 }

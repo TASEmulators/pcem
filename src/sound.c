@@ -102,7 +102,7 @@ int sound_card_get_from_internal_name(char *s)
 	return 0;
 }
 
-void sound_card_init()
+void sound_card_init(int card)
 {
         if (sound_cards[sound_card_current].device)
                 device_add(sound_cards[sound_card_current].device);

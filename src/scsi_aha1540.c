@@ -2232,7 +2232,7 @@ static uint16_t port_sw_mapping[8] =
         0x330, 0x334, 0x230, 0x234, 0x130, 0x134, -1, -1
 };
 
-static void *scsi_aha1542c_init(char *bios_fn)
+static void *scsi_aha1542c_init()
 {
         aha154x_t *scsi = malloc(sizeof(aha154x_t));
         uint32_t addr;
@@ -2283,7 +2283,7 @@ static void *scsi_aha1542c_init(char *bios_fn)
         return scsi;
 }
 
-static void *scsi_bt545s_init(char *bios_fn)
+static void *scsi_bt545s_init()
 {
         aha154x_t *scsi = malloc(sizeof(aha154x_t));
         uint32_t addr;

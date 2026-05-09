@@ -95,7 +95,7 @@ int mouse_queue_start = 0, mouse_queue_end = 0;
 
 void keyboard_at_adddata_keyboard(uint8_t val);
 
-void keyboard_at_poll()
+void keyboard_at_poll(void*)
 {
 	timer_advance_u64(&keyboard_at.send_delay_timer, (100 * TIMER_USEC));
 
