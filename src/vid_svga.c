@@ -449,7 +449,6 @@ void svga_recalctimings(svga_t *svga)
         printf("total %f on %i cycles off %i cycles frame %i sec %i %02X\n",disptime*crtcconst,svga->dispontime,svga->dispofftime,(svga->dispontime+svga->dispofftime)*svga->vtotal,(svga->dispontime+svga->dispofftime)*svga->vtotal*70,svga->seqregs[1]);
 
         pclog("svga->render %08X\n", svga->render);*/
-        report_framerate_change((unsigned long long)(cpuclock * (float)(1ull << 32) / svga->clock), (unsigned long long)(svga->vtotal * svga->htotal * svga->char_width));
 }
 
 extern int cyc_total;
@@ -1321,6 +1320,7 @@ uint8_t svga_read_linear(uint32_t addr, void *p)
 void svga_doblit(int y1, int y2, int wx, int wy, svga_t *svga)
 {
 //        pclog("svga_doblit start\n");
+        report_framerate_change((unsigned long long)(cpuclock * (float)(1ull << 32) / svga->clock), (unsigned long long)(svga->vtotal * svga->htotal * svga->char_width));
         svga->frames++;
 //        pclog("doblit %i %i\n", y1, y2);
 //        pclog("svga_doblit %i %i\n", wx, svga->hdisp);
